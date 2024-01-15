@@ -1,3 +1,7 @@
+# Copyright (c) 2023 Gokul B
+# Distributed under the MIT/X11 software license, see the accompanying
+# http://www.opensource.org/licenses/mit-license.php.
+
 from typing import Optional, Tuple, Union
 import customtkinter
 from tkinter import messagebox
@@ -90,7 +94,7 @@ class LoginFrame(customtkinter.CTkFrame):
         else:
             check = mainfunc.check_login(username, password) 
             if check == SUCCESS:
-                print("It worked")
+                messagebox.showinfo("Success", "You are Successfully Logged")
             elif check == FAILED:
                 messagebox.showerror("Error", "Wrong Password or Username")
 
