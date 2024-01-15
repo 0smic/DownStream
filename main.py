@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Gokul B
+# Distributed under the MIT/X11 software license, see the accompanying
+# http://www.opensource.org/licenses/mit-license.php.
 from cryptography.fernet import Fernet
 import datetime
 import h5py
@@ -6,7 +9,7 @@ import bcrypt
 SUCCESS = 0
 FAILED = 1
 
-author = "Gokul"
+
 
 class Main_Func:
     """
@@ -51,6 +54,12 @@ class Main_Func:
             return SUCCESS
         else:
             return FAILED
+        
+    def check_login(self,username, passowrd):
+        decrypted_password = self.decryption(username)
+        check = self.matching_hash(passowrd,decrypted_password)
+        return check
+
         
 class Log_Func:
     """
