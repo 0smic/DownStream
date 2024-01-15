@@ -41,7 +41,7 @@ class RegisterFrame(customtkinter.CTkFrame):
         self.switch_frame_callback = switch_frame_callback
 
         # Back to the main frame button
-        back_image = Image.open("back-icon.png")
+        back_image = Image.open("rc/back-icon.png")
         back_image = back_image.resize((10,10))
         back_icon = ImageTk.PhotoImage(back_image)
 
