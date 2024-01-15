@@ -3,6 +3,7 @@ import customtkinter
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from main import saveindatabase
+from main import mainfunc
 
 SUCCESS = 0
 FAILED = 1
@@ -23,7 +24,7 @@ class FirstSectionFrame(customtkinter.CTkFrame):
         self.register.grid(row=1, column=0, pady=(5, 0), sticky="") 
 
         # Login button below the Register button, centered
-        self.login = customtkinter.CTkButton(self, text="Login", command=self.login)
+        self.login = customtkinter.CTkButton(self, text="Login", command=self.switch_to_login)
         self.login.grid(row=2, column=0, pady=(5, 100), sticky="")
 
         # Configure row and column weights for centering
@@ -37,8 +38,62 @@ class FirstSectionFrame(customtkinter.CTkFrame):
         # Call the callback to switch to the Register frame
         self.switch_frame_callback("RegisterFrame")
 
+    def switch_to_login(self):
+        self.switch_frame_callback("LoginFrame")
+
     def login(self):
         print("login test")
+
+
+class LoginFrame(customtkinter.CTkFrame):
+    def __init__(self, master, switch_frame_callback):
+        super().__init__(master)
+        self.switch_frame_callback = switch_frame_callback
+
+        # Back to the main frame button
+        back_image = Image.open("rc/back-icon.png")
+        back_image = back_image.resize((10,10))
+        back_icon = ImageTk.PhotoImage(back_image)
+
+        self.back_button = customtkinter.CTkButton(self, image=back_icon,text="", border_width=0, command=self.switch_to_main,fg_color="#333333",width=0)
+        self.back_button.image = back_icon
+        self.back_button.grid(row=0, column=0, pady=(10, 0), sticky="w")
+
+        # Entry for the username
+
+        self.username_label = customtkinter.CTkLabel(self, text="Username:")
+        self.username_label.grid(row=3, column=0, pady=(10,0), padx=10, sticky="w")
+
+        self.username_entry = customtkinter.CTkEntry(self)
+        self.username_entry.grid(row=3,column=1, pady=(10,0), padx=10, sticky="e")
+
+        # Entry for the password
+        self.password_label = customtkinter.CTkLabel(self, text="Password:")
+        self.password_label.grid(row=4, column=0, pady=(10,0), padx=10, sticky="w")
+
+        self.password_entry = customtkinter.CTkEntry(self, show="*")
+        self.password_entry.grid(row=4,column=1, pady=(10,0), padx=10, sticky="e")
+
+        # Login Button
+        self.login_button = customtkinter.CTkButton(self, text="Login", command=self.login_user)
+        self.login_button.grid(row=5, column=1, pady=(10,20), padx=10)
+
+    def switch_to_main(self):
+        # Call the callback to switch back to the main frame
+        self.switch_frame_callback("FirstSectionFrame")
+
+    def login_user(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        if not username or not password:
+            messagebox.showerror("Error", "Please fill all field")
+        else:
+            check = mainfunc.check_login(username, password) 
+            if check == SUCCESS:
+                print("It worked")
+            elif check == FAILED:
+                messagebox.showerror("Error", "Wrong Password or Username")
+
 
 class RegisterFrame(customtkinter.CTkFrame):
     def __init__(self, master, switch_frame_callback):
@@ -156,6 +211,8 @@ class App(customtkinter.CTk):
             self.current_frame = FirstSectionFrame(self, self.show_frame)
         elif frame_name == "RegisterFrame":
             self.current_frame = RegisterFrame(self, self.show_frame)
+        elif frame_name == "LoginFrame":
+            self.current_frame = LoginFrame(self, self.show_frame)
 
         self.current_frame.grid(row=0, column=0, padx=20, pady=60, sticky="nsew")
 
