@@ -2,6 +2,11 @@ from typing import Optional, Tuple, Union
 import customtkinter
 from tkinter import messagebox
 from PIL import Image, ImageTk
+from main import saveindatabase
+
+SUCCESS = 0
+FAILED = 1
+
 
 class FirstSectionFrame(customtkinter.CTkFrame):
     def __init__(self, master, switch_frame_callback):
@@ -76,7 +81,7 @@ class RegisterFrame(customtkinter.CTkFrame):
 
 
 
-        self.email_label = customtkinter.CTkLabel(self, text="Date of Birth:")
+        self.email_label = customtkinter.CTkLabel(self, text="Email:")
         self.email_label.grid(row=6, column=0, pady=(10, 0), padx=10, sticky="w")
 
         # Entry for email of the User
@@ -106,6 +111,18 @@ class RegisterFrame(customtkinter.CTkFrame):
         if not username or not name or not password or not email or not dob:
             messagebox.showinfo("Error", "Please fill out all the field")
             return
+        else:
+            check = saveindatabase.register_data(username, name, password, email, dob)
+            if check == SUCCESS:
+                self.username_entry.delete(0, 'end')
+                self.name_entry.delete(0, 'end')
+                self.password_entry.delete(0, 'end')
+                self.email_entry.delete(0, 'end')
+                self.dob_entry.delete(0, 'end')
+                messagebox.showinfo("Sucess", "Your are Successfully Registred\n You can now login to DownStream")
+            elif check == FAILED:
+                messagebox.showwarning("Failed", "This username already exists")
+
         
         
     def switch_to_main(self):
