@@ -27,4 +27,4 @@ DownStream is a secure, user-friendly messaging application designed for seamles
 - Clearer Message Codes: Streamlined network communication with clearer message codes and standardized data transmission formats.
 ### Graceful Application Shutdown
 - Graceful Shutdown Mechanism: Implemented a graceful shutdown mechanism for proper closure and cleanup.
-Graceful Shutdown Mechanism: Implemented a graceful shutdown mechanism for proper closure and cleanup.
+
