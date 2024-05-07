@@ -28,3 +28,22 @@ DownStream is a secure, user-friendly messaging application designed for seamles
 ### Graceful Application Shutdown
 - Graceful Shutdown Mechanism: Implemented a graceful shutdown mechanism for proper closure and cleanup.
 
+# How To Start
+
+ ## To Start the Server
+
+Go to ther folder and type this command
+~~~
+cd server && python server.py
+~~~
+
+Next you need to start the client
+
+## To Start the Client
+
+~~~
+cd client python ui.py
+~~~
+
+
+
