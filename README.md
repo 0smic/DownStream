@@ -42,7 +42,7 @@ Next you need to start the client
 ## To Start the Client
 
 ~~~
-cd client python ui.py
+cd client && python ui.py
 ~~~
 
 
