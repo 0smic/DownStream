@@ -17,10 +17,6 @@ DownStream is a secure, user-friendly messaging application designed for seamles
 ### Advanced Logging and Error Handling
 - Sophisticated Logging: Implemented a logging system using the logging module for better issue identification.
 - Error Handling: Enhanced error handling mechanisms for improved debugging.
-### Extended Search Capabilities
-- Advanced User Search: Integrated an efficient user search feature using the SearchAlgo algorithm.
-### Version Tracking
-- Version Identification: Users can now easily identify the installed version for debugging and support.
 ### Stability and Performance
 - Optimization: Conducted extensive debugging and optimization for improved stability and performance.
 ### Network Communication Refinement
