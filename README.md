@@ -34,8 +34,7 @@ DownStream is a secure, user-friendly messaging application designed for seamles
 
 Go to ther folder and type this command
 ~~~
-cd server
-python server.py
+cd server & python server.py
 ~~~
 
 Next you need to start the client
@@ -43,8 +42,7 @@ Next you need to start the client
 ## To Start the Client
 
 ~~~
-cd client
-python ui.py
+cd client & python ui.py
 ~~~
 
 
