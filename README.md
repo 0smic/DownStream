@@ -41,5 +41,16 @@ Next you need to start the client
 cd client & python ui.py
 ~~~
 
+## Screenshots
+
+ ![down1-5](https://github.com/0smic/DownStream/assets/146622216/d0644331-f1ce-4a05-b560-eece56ff23fb)
+
+
+ ![donw-log](https://github.com/0smic/DownStream/assets/146622216/35223aff-272d-463d-87fa-18dc0ffe0d98)
+
+
+ ![down-mess](https://github.com/0smic/DownStream/assets/146622216/13c48152-c0b6-43b8-a391-d8cc58cea2de)
+
+ 
 
 
