@@ -35,12 +35,11 @@ class Main_Func:
                 if username in file3:
                     group = file3[username]
                     password = group.attrs['password']
-                    with h5py.File('user_key.h5', 'r') as file4: ## Checking if the user key is saved in the user_key and collecting the key
+                    with h5py.File('user_key.h5', 'r') as file4: # Checking if the user key is saved in the user_key and collecting the key
                         groups = file4[username]
                         key = groups.attrs['key']
                         cipher_suit = Fernet(key)
                         d_password = cipher_suit.decrypt(password)
-                        #decoded_passw = decrypted_password.decode()
                     return d_password # Returning the decoded password or the hashed password
                 else:
                     return FAILED
@@ -48,12 +47,15 @@ class Main_Func:
             return FAILED
 
     def hashing_pass(self, password):
+        """This func helps to hash the password and return salt and hashed password"""
         salt = bcrypt.gensalt()
         hashed_passw = bcrypt.hashpw(password.encode('utf8'), salt)
         return hashed_passw, salt
 
 
     def matching_hash(self, password, decrypted_password):
+        """This func help to match the hashed password to the password send by client for login
+            And return SUCCESS(0) for match and FAILED(1) for mismatch """
         entred_password = password.encode('utf8')
         if bcrypt.checkpw(entred_password, decrypted_password):
             return SUCCESS
@@ -61,6 +63,10 @@ class Main_Func:
             return FAILED
         
     def check_login(self,username, passowrd):
+        """This function take the decrypted password which is actually a hashed passw from the decryption func
+            And pass hashed password and the password send by the client to the matching_hash func
+             Return SUCCESS if it matched
+              Otherwise Return FAILED """
         check_decryption = self.decryption(username)
         if check_decryption != FAILED:
             decrypted_password = check_decryption
@@ -80,13 +86,19 @@ class Log_Func:
         now = datetime.datetime.now()
         self.exact_time = now.strftime("%Y-%m-%d %H:%M:%S") #This value of the var is the year-month-day hour:minute:second
 
-    def register_log(self, username):  #This function is used to save the registred log in a file
-        log_entry = f"{self.exact_time} Username: {username}"
+    def register_log(self, username):  
+        """
+            This function is used to save the registred log in a file
+        """
+        log_entry = f"{self.exact_time} Username: {username}/n"
         with open('register_log.txt', 'a', encoding='utf8') as reg_log:
             reg_log.write(log_entry)
 
-    def login_log(self, username): #Thiss function is used to save the login log in a file
-        log_entry = f"{self.exact_time} Username: {username}"
+    def login_log(self, username): 
+        """
+            This function is used to save the login log in a file
+        """
+        log_entry = f"{self.exact_time} Username: {username}/n"
         with open('login_log.txt', 'a', encoding='utf8') as loged_log:
             loged_log.write(log_entry)
 
