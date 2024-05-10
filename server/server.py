@@ -23,8 +23,8 @@ DEFAULT_BYTES = 6
 
 STOP_CODE = "3239341023940943523452345245234523"
 
-NORMAL_MESSAGE_CODE = "#83bzv"
-SPLITING_CODE = "/0/"
+NORMAL_MESSAGE_CODE = "#83bzv"  # This code help to identify the normal message send by the client
+SPLITING_CODE = "/0/"  #  This code used split message code and the message
 
 SERVER_IP = "127.0.0.1"
 PORT  = 5053
@@ -36,43 +36,48 @@ class Server:
         self.ServerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ServerSock.bind((ADDR))
         self.ShutDownFlag = threading.Event()
-        self.Clients = []
-        self.RegisterLoginClients= []
-        self.client_handle_exist = {}
-        self.username_client = {}
+        self.Clients = [] # list of client are acitve 
+        self.RegisterLoginClients= [] # list of client trying to register ot login
+        self.client_handle_exist = {} 
+        self.username_client = {} # username of client which are active m
 
-        self.client_handle_message_exist = {}
+        self.client_handle_message_exist = {} 
         self.RecieveNewConnection()
 
 
     def HandleNewClientRegisterLogin(self, Client, ClientAddr):
+        """
+        This func starts a data recveing thread when a client connected to the server.
+        Also identify the credentials send by the client for login and register.
+        """
         
         client_exist_event = self.client_handle_exist[Client]
         while not self.ShutDownFlag.is_set() and not client_exist_event.is_set():
             try:
                 logging.info("HandleNewClientMessage function loop started")
-                MessageLength = Client.recv(DEFAULT_BYTES).decode(FORMAT)
+                MessageLength = Client.recv(DEFAULT_BYTES).decode(FORMAT)  # data recv thread 
                 if MessageLength:
                     MessageLength = int(MessageLength)
                     Message = Client.recv(MessageLength).decode(FORMAT)
                     if Message:
                         MessageSplited = Message.split(SPLITING_CODE)
-                        if MessageSplited[0] == REGISTER_KEY:
+                        if MessageSplited[0] == REGISTER_KEY:  # Register process 
                             logging.info("Registred Key has been Detected")
-                            self.RegisterDataCollect(MessageSplited, Client)
-                        elif MessageSplited[0] == LOGIN_KEY:
+                            self.RegisterDataCollect(MessageSplited, Client)  # credentials for register send to the RegisterDataCollect func
+                        elif MessageSplited[0] == LOGIN_KEY:  # Login Process
                             logging.info("Login key has been Detected")
-                            self.LoginDataCollect(MessageSplited, Client)
-                        elif MessageSplited[0] == LOGIN_COMPLETE_KEY:
+                            self.LoginDataCollect(MessageSplited, Client) # Login credentials send to the LoginDataCollect func
+
+                        elif MessageSplited[0] == LOGIN_COMPLETE_KEY: # login has been completed 
                             self.client_handle_exist[Client].set()
                             logging.info("Login completed Key recieved")
-                            recv_thread = threading.Thread(target=self.HandleMessage, args=(Client,ClientAddr,), daemon=True)
-                            self.client_handle_message_exist[Client] = threading.Event()
-                            recv_thread.start()
+                            recv_thread = threading.Thread(target=self.HandleMessage, args=(Client,ClientAddr,), daemon=True) 
+                            self.client_handle_message_exist[Client] = threading.Event() 
+                            recv_thread.start() # Started Normal Message recv thread for chatting
 
-                        elif MessageSplited[0] == STOP_CODE:
+                        elif MessageSplited[0] == STOP_CODE: # Client has shutdown the application before login or register
                             logging.info("Stop Code has been detected in the HandleNewClientRegisterLogin")
-                            self.close_client(Client)
+                            self.close_client(Client) # closing all threads of that client
                             break
                             
                         else:   
@@ -103,20 +108,20 @@ class Server:
         while not self.ShutDownFlag.is_set() and not Client_handle_event.is_set():
             try:
                 logging.info("HandleMessage  Func loop started")
-                MessageLength = Client.recv(DEFAULT_BYTES).decode(FORMAT)
+                MessageLength = Client.recv(DEFAULT_BYTES).decode(FORMAT) # Waiting to the message length to recv
                 if MessageLength:
                     MessageLength = int(MessageLength)
-                    Message = Client.recv(MessageLength).decode(FORMAT)
+                    Message = Client.recv(MessageLength).decode(FORMAT) # Waiting for the normal message to recv
                     if Message:
                         MessageSplited = Message.split(SPLITING_CODE)
-                        if MessageSplited[0] == NORMAL_MESSAGE_CODE:
+                        if MessageSplited[0] == NORMAL_MESSAGE_CODE: # checking if the message is valid or a interrupted message
                             username = self.username_client[Client]
                             self.BroadcastMessage(MessageSplited[1], username)
 
 
-                        elif MessageSplited[0] == STOP_CODE:
+                        elif MessageSplited[0] == STOP_CODE: # client has shutdown the application after login
                             self.client_handle_message_exist[Client].set()
-                            self.close_client(Client)
+                            self.close_client(Client) # closing all the threads used for that user
                             break
 
             except ConnectionResetError:
@@ -142,7 +147,7 @@ class Server:
                 logging.info(f"{ClientAddr} : is Connected from the Server")
                 self.client_handle_exist[Client] = threading.Event()
                 HandleMessageThread = threading.Thread(target=self.HandleNewClientRegisterLogin, args=(Client,ClientAddr), daemon=True)
-                HandleMessageThread.start()
+                HandleMessageThread.start() # Register and login credential recv thread has started for new user 
 
     def BroadcastMessage(self, Message, username):
         """This function broadcast the message to all of the user connected to the server"""
@@ -153,6 +158,8 @@ class Server:
             client.send(Message.encode(FORMAT))
 
     def RegisterDataCollect(self,MessageSplited, Client):
+        """This func recv all the credendital for  registeration send by the client
+         and send that all data to  saveindatabase.register_data func in the main.py"""
         fields = ["username", "name","password", "email", "dob"]
         person = []
         for i in range(1,6):
@@ -173,6 +180,8 @@ class Server:
             pass
 
     def LoginDataCollect(self, MessageSplited, Client):
+        """This func recv all the credendital for login send by the client
+         and send that all data to mainfunc.check_login func in the main.py"""
         fields = ["username", "password"]
         person = []
         for i in range(1,3):
@@ -197,11 +206,13 @@ class Server:
 
 
     def SentToSpecificCleint(self, Client, Message):
+        """This func used to send message to specific client"""
         MessageLength = str(len(Message)).zfill(4)
         Client.send(MessageLength.encode(FORMAT))
         Client.send(Message.encode(FORMAT))
 
     def close_client(self, Client):
+        """This func close all the thread of all client"""
         if Client in self.Clients:
             self.Clients.remove(Client)
         if Client in self.RegisterLoginClients:
