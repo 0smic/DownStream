@@ -1,3 +1,7 @@
+# Copyright (c) 2023 Gokul B
+# Distributed under the MIT/X11 software license, see the accompanying
+# http://www.opensource.org/licenses/mit-license.php.
+
 import threading
 import socket
 import logging
@@ -20,7 +24,12 @@ LOGIN_FAILED_KEY = "382384283492384091234938401234813"
 STOP_CODE = "3239341023940943523452345245234523"
 
 LOGIN_COMPLETE_KEY = "32832937498234098234901834328421"
+
+KICK_CODE = "323423439823HFD8F9834H33239U234JG3"
+BAN_CODE = "34IO34344HJKDF99ADFGUFJNKNDFA9ASFF"
+
 NORMAL_MESSAGE_CODE = "#83bzv"
+SERVER_MESSAGE_CODE = "#43FN34n"
 SPLITING_CODE = "/0/"
 
 SERVER_IP = "127.0.0.1"
@@ -31,7 +40,6 @@ FORMAT = 'utf-8'
 DEFAULT_BYTES = 6
 
 
-
 class Client:
     def __init__(self):
         self.ClientSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,10 +48,7 @@ class Client:
             logging.info("Connected to Server successfully")
         except ConnectionRefusedError:
             raise ConnectionError("Failed to Connect to the Server")
-
-
-
-
+            
     def SendMessage(self, Message):
         """This function will get the lenght of the message and send it first and then send the actual message second"""
         MessageLength = str(len(Message)).zfill(DEFAULT_BYTES)
@@ -64,8 +69,11 @@ class Client:
                         if MessageSplited[0] == NORMAL_MESSAGE_CODE:
                             Message = f"{MessageSplited[1]}: {MessageSplited[2]}"
                             on_message_recieved(Message)
-                            
-
+                        elif MessageSplited[0] == SERVER_MESSAGE_CODE:
+                            if MessageSplited[1] == KICK_CODE:
+                                on_message_recieved(KICK_CODE)
+                            if MessageSplited[1] == BAN_CODE:
+                                on_message_recieved(BAN_CODE)
             except ConnectionResetError:
                 logging.exception("Disconnected from the Server: ConnectionResetError")
                 break
@@ -97,8 +105,7 @@ class Client:
                         else:
                             logging.info("Unknown Message recieved in the Register key recv method")
                             return INVALID
-                        
-                    
+                            
     def LoginDataSend(self, username, password):
         person = [username, password]
         encoded_data = LOGIN_KEY
@@ -125,27 +132,15 @@ class Client:
                             return FAILED
                         else:
                             return INVALID
-                        
-
-
+                            
     def send_normal_message(self, Message):
         Message = NORMAL_MESSAGE_CODE + SPLITING_CODE + Message
         MessageLength = str(len(Message)).zfill(DEFAULT_BYTES)
         self.ClientSock.send(MessageLength.encode(FORMAT))
         self.ClientSock.send(Message.encode(FORMAT))
 
-
     def shutdown_data_send(self):
         Message = STOP_CODE
         MessageLength = str(len(Message)).zfill(DEFAULT_BYTES)
         self.ClientSock.send(MessageLength.encode(FORMAT))
         self.ClientSock.send(Message.encode(FORMAT))
-        
-        
-
-
-            
-
-        
-
-
