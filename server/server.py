@@ -1,3 +1,8 @@
+# Copyright (c) 2023 Gokul B
+# Distributed under the MIT/X11 software license, see the accompanying
+# http://www.opensource.org/licenses/mit-license.php.
+
+
 import threading
 import socket
 from main import saveindatabase
@@ -23,6 +28,10 @@ DEFAULT_BYTES = 6
 
 STOP_CODE = "3239341023940943523452345245234523"
 
+SERVER_MESSAGE_CODE = "#43FN34n"
+KICK_CODE = "323423439823HFD8F9834H33239U234JG3"
+BAN_CODE = "34IO34344HJKDF99ADFGUFJNKNDFA9ASFF"
+
 NORMAL_MESSAGE_CODE = "#83bzv"  # This code help to identify the normal message send by the client
 SPLITING_CODE = "/0/"  #  This code used split message code and the message
 
@@ -39,10 +48,113 @@ class Server:
         self.Clients = [] # list of client are acitve 
         self.RegisterLoginClients= [] # list of client trying to register ot login
         self.client_handle_exist = {} 
-        self.username_client = {} # username of client which are active m
+        self.username_client = {} # username of client are active client
+        self.client_handle_message_exist = {}
 
-        self.client_handle_message_exist = {} 
-        self.RecieveNewConnection()
+        CommandSection = self.CommandSection(self, self.ShutDownFlag, self.ServerSock, self.Clients, self.RegisterLoginClients, self.client_handle_exist, self.username_client, self.client_handle_message_exist)
+        RecieveNewConnection_thread = threading.Thread(target=self.RecieveNewConnection)
+        RecieveNewConnection_thread.start()
+        CommandLoop_thread = threading.Thread(target=CommandSection.CommandLoop)
+        CommandLoop_thread.start()
+        RecieveNewConnection_thread.join()
+
+
+
+#################-----COMMAND SECTION --------################
+        
+    class CommandSection:
+        """This class include all the function realted to server command"""
+        def __init__(self,Serverinstance, ShutDownFlag, ServerSock, Clients, RegisterLoginClients, client_handle_exist,username_client, client_handle_message_exist) -> None:
+            self.Serverinstance = Serverinstance
+            self.ShutDownFlag = ShutDownFlag
+            self.ServerSock = ServerSock
+            self.Clients = Clients
+            self.RegisterLoginClients = RegisterLoginClients
+            self.client_handle_exist = client_handle_exist
+            self.username_client = username_client
+            self.client_handle_message_exist = client_handle_message_exist
+
+        def CommandLoop(self):
+            """This func create a commandline interface in the terminal, so you can control the server by commands"""
+            print("Try 'help'")
+            while not self.ShutDownFlag.is_set():
+                command = input(">>> ")
+                splited_command = command.split(' ')
+                if splited_command[0] == "help":
+                    print("kick <username>    -     Kick a user from the chat for sometime")
+                    print("ban <username>     -     Ban a user from the server for ever")
+                    print("countuser          -     Shows no. of users are active")
+                    print("lsuser             -     Shows the username of user which are active")
+                    print("shutdown           -     It will shutdown the Server")
+                    print("help               -     To see the commands")
+                elif splited_command[0] == "shutdown":
+                    self.shutdown()
+                    break
+                elif splited_command[0] == "countuser":
+                    self.countuser()
+                elif splited_command[0] == "lsuser":
+                    self.lsuser()
+                elif splited_command[0] == "kick":
+                    self.kickout(splited_command[1])
+                else:
+                    print("Invalid command")
+
+        def shutdown(self):
+                """This func clear all the connections and thread of the active users and shutdown the server"""
+                print("Shuting down the server...")
+
+                for client in self.RegisterLoginClients:
+                    self.RegisterLoginClients.remove(client)
+
+                for client in self.Clients:
+                    self.Clients.remove(client)
+
+                for client in self.client_handle_exist:
+                    self.client_handle_exist[client].set()
+                self.client_handle_exist.clear()
+
+                for client in self.client_handle_message_exist:
+                    self.client_handle_message_exist[client].set()
+                self.client_handle_message_exist.clear()
+                
+                print(self.username_client)
+                self.username_client.clear()
+                print(self.username_client)
+                
+
+                self.ShutDownFlag.set()
+                self.ServerSock.close()
+
+        def countuser(self):
+            activecount = 0
+            nonloginuser = 0
+            for client in self.client_handle_message_exist:
+                activecount = activecount + 1
+
+            for client in self.RegisterLoginClients:
+                nonloginuser = nonloginuser + 1
+            print('\n')
+            print(f"Pending Users in the Login/Register section :    {nonloginuser}")
+            print(f"Active Users in Chat                        :    {activecount}")
+            print('\n')
+
+        def lsuser(self):
+            print('\n')
+            print("List of Active User's username")
+            print("     --------------")
+            for client, username in self.username_client.items():
+                print("\t")
+                print(username)
+
+        def kickout(self, username):
+            for conn, usrname in self.username_client.items():
+                if usrname == username:
+                    client = conn
+            Message = SERVER_MESSAGE_CODE + SPLITING_CODE + KICK_CODE
+            self.Serverinstance.SentToSpecificCleint(client, Message)
+
+
+#################-----END OF COMMAND SECTION --------################
 
 
     def HandleNewClientRegisterLogin(self, Client, ClientAddr):
@@ -71,34 +183,28 @@ class Server:
                         elif MessageSplited[0] == LOGIN_COMPLETE_KEY: # login has been completed 
                             self.client_handle_exist[Client].set()
                             logging.info("Login completed Key recieved")
+                            self.RegisterLoginClients.remove(Client)
                             recv_thread = threading.Thread(target=self.HandleMessage, args=(Client,ClientAddr,), daemon=True) 
                             self.client_handle_message_exist[Client] = threading.Event() 
                             recv_thread.start() # Started Normal Message recv thread for chatting
-
                         elif MessageSplited[0] == STOP_CODE: # Client has shutdown the application before login or register
                             logging.info("Stop Code has been detected in the HandleNewClientRegisterLogin")
                             self.close_client(Client) # closing all threads of that client
-                            break
-                            
+                            break    
                         else:   
                             logging.info("Unwanted message recieved in HandleNewClientRegisterLogin")
                     else:
                         logging.error("Error in HandleNewClientRegisterLogin")
-
-                    
+       
             except ConnectionResetError:
                 print(f"{ClientAddr} : is Disconnected from the Server")
                 logging.info(f"{ClientAddr} : is Disconnected from the Server")
-                if Client in self.RegisterLoginClients:
-                    self.RegisterLoginClients.remove(Client)
-                Client.close()
+                self.close_client(Client)
                 break
             except ConnectionAbortedError:
                 print(f"{ClientAddr} : is Disconnected from the Server")
                 logging.info(f"{ClientAddr} : is Disconnected from the Server")
-                if Client in self.RegisterLoginClients:
-                    self.RegisterLoginClients.remove(Client)
-                Client.close()
+                self.close_client(Client)
                 break
                     
 
@@ -137,17 +243,28 @@ class Server:
 
     def RecieveNewConnection(self):
         """This function look for new connection and accept the connection and start a new message recieving thread and add the user in the users list"""
+        print(self.ShutDownFlag)
         if not self.ShutDownFlag.is_set():
             self.ServerSock.listen()
-            while True:
-                logging.info("RecieveNewConnection function is looking for new connections\n")
+        while not self.ShutDownFlag.is_set():
+            logging.info("RecieveNewConnection function is looking for new connections\n")
+            try:
                 Client, ClientAddr = self.ServerSock.accept()
-                self.RegisterLoginClients.append(Client)
-                print(f"{ClientAddr} : is Connected to the Server")
-                logging.info(f"{ClientAddr} : is Connected from the Server")
-                self.client_handle_exist[Client] = threading.Event()
-                HandleMessageThread = threading.Thread(target=self.HandleNewClientRegisterLogin, args=(Client,ClientAddr), daemon=True)
-                HandleMessageThread.start() # Register and login credential recv thread has started for new user 
+            except socket.error:
+                if self.ShutDownFlag.is_set():
+                    logging.info("Server is Shutdown by Admin")
+                    break
+                else:
+                    logging.error("Unexpected Error Occured")
+
+                
+            self.RegisterLoginClients.append(Client)
+            print(f"{ClientAddr} : is Connected to the Server")
+            logging.info(f"{ClientAddr} : is Connected from the Server")
+            self.client_handle_exist[Client] = threading.Event()
+            HandleMessageThread = threading.Thread(target=self.HandleNewClientRegisterLogin, args=(Client,ClientAddr), daemon=True)
+            HandleMessageThread.start() # Register and login credential recv thread has started for new user 
+        
 
     def BroadcastMessage(self, Message, username):
         """This function broadcast the message to all of the user connected to the server"""
@@ -207,7 +324,7 @@ class Server:
 
     def SentToSpecificCleint(self, Client, Message):
         """This func used to send message to specific client"""
-        MessageLength = str(len(Message)).zfill(4)
+        MessageLength = str(len(Message)).zfill(DEFAULT_BYTES)
         Client.send(MessageLength.encode(FORMAT))
         Client.send(Message.encode(FORMAT))
 
@@ -219,7 +336,6 @@ class Server:
             self.RegisterLoginClients.remove(Client)
         self.client_handle_exist.pop(Client, None)
         self.client_handle_message_exist.pop(Client, None)
-
         Client.close()
 
 
