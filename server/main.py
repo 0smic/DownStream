@@ -90,7 +90,7 @@ class Log_Func:
         """
             This function is used to save the registred log in a file
         """
-        log_entry = f"{self.exact_time} Username: {username}/n"
+        log_entry = f"{self.exact_time} Username: {username}\n"
         with open('register_log.txt', 'a', encoding='utf8') as reg_log:
             reg_log.write(log_entry)
 
@@ -98,7 +98,7 @@ class Log_Func:
         """
             This function is used to save the login log in a file
         """
-        log_entry = f"{self.exact_time} Username: {username}/n"
+        log_entry = f"{self.exact_time} Username: {username}\n"
         with open('login_log.txt', 'a', encoding='utf8') as loged_log:
             loged_log.write(log_entry)
 
