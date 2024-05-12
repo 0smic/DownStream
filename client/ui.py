@@ -274,7 +274,9 @@ class AfterLoginFrame(customtkinter.CTkFrame):
             messagebox.showerror("ADMIN", "You been kicked out by the Admin")    
             app.shutdown()  
         elif MessageContent == BAN_CODE:
-            pass
+            logging.info("ADMIN BANNED YOU FROM THE SERVER")
+            messagebox.showerror("ADMIN", "You been Banned by the Admin")    
+            app.shutdown()
         else:
             self.message_display.config(state="normal")
             self.message_display.insert("end", MessageContent + "\n")
