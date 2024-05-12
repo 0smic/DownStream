@@ -96,6 +96,8 @@ class Server:
                     self.lsuser()
                 elif splited_command[0] == "kick":
                     self.kickout(splited_command[1])
+                elif splited_command[0] == "ban":
+                    self.ban(splited_command[1])
                 else:
                     print("Invalid command")
 
@@ -151,6 +153,13 @@ class Server:
                 if usrname == username:
                     client = conn
             Message = SERVER_MESSAGE_CODE + SPLITING_CODE + KICK_CODE
+            self.Serverinstance.SentToSpecificCleint(client, Message)
+
+        def ban(self, username):
+            for conn, usrname in self.username_client.items():
+                if usrname == username:
+                    client = conn
+            Message = SERVER_MESSAGE_CODE + SPLITING_CODE + BAN_CODE
             self.Serverinstance.SentToSpecificCleint(client, Message)
 
 
