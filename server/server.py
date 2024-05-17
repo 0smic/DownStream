@@ -95,36 +95,35 @@ class Server:
                 elif splited_command[0] == "lsuser":
                     self.lsuser()
                 elif splited_command[0] == "kick":
-                    self.kickout(splited_command[1])
+                    if splited_command[1]:
+                        self.kickout(splited_command[1])
+                    else:
+                        print("You forgot to type username, format: kick <username>")
                 elif splited_command[0] == "ban":
-                    self.ban(splited_command[1])
+                    if splited_command[1]:
+                        self.ban(splited_command[1])
+                    else:
+                        print("You forgot to type username, format: ban <username>")
                 else:
                     print("Invalid command")
 
         def shutdown(self):
                 """This func clear all the connections and thread of the active users and shutdown the server"""
                 print("Shuting down the server...")
-
                 for client in self.RegisterLoginClients:
                     self.RegisterLoginClients.remove(client)
-
                 for client in self.Clients:
                     self.Clients.remove(client)
-
                 for client in self.client_handle_exist:
                     self.client_handle_exist[client].set()
                 self.client_handle_exist.clear()
-
                 for client in self.client_handle_message_exist:
                     self.client_handle_message_exist[client].set()
-                self.client_handle_message_exist.clear()
-                
-                print(self.username_client)
-                self.username_client.clear()
-                print(self.username_client)
-                
 
+                self.client_handle_message_exist.clear()
+                self.username_client.clear()
                 self.ShutDownFlag.set()
+                print("[+] ShutDown Completed")
                 self.ServerSock.close()
 
         def countuser(self):
@@ -132,7 +131,6 @@ class Server:
             nonloginuser = 0
             for client in self.client_handle_message_exist:
                 activecount = activecount + 1
-
             for client in self.RegisterLoginClients:
                 nonloginuser = nonloginuser + 1
             print('\n')
@@ -161,6 +159,7 @@ class Server:
                     client = conn
             Message = SERVER_MESSAGE_CODE + SPLITING_CODE + BAN_CODE
             self.Serverinstance.SentToSpecificCleint(client, Message)
+
 
 
 #################-----END OF COMMAND SECTION --------################
@@ -204,7 +203,6 @@ class Server:
                             logging.info("Unwanted message recieved in HandleNewClientRegisterLogin")
                     else:
                         logging.error("Error in HandleNewClientRegisterLogin")
-       
             except ConnectionResetError:
                 print(f"{ClientAddr} : is Disconnected from the Server")
                 logging.info(f"{ClientAddr} : is Disconnected from the Server")
@@ -216,8 +214,6 @@ class Server:
                 self.close_client(Client)
                 break
                     
-
-
     def HandleMessage(self, Client, ClientAddr):
         Client_handle_event = self.client_handle_message_exist[Client]
         while not self.ShutDownFlag.is_set() and not Client_handle_event.is_set():
@@ -232,13 +228,10 @@ class Server:
                         if MessageSplited[0] == NORMAL_MESSAGE_CODE: # checking if the message is valid or a interrupted message
                             username = self.username_client[Client]
                             self.BroadcastMessage(MessageSplited[1], username)
-
-
                         elif MessageSplited[0] == STOP_CODE: # client has shutdown the application after login
                             self.client_handle_message_exist[Client].set()
                             self.close_client(Client) # closing all the threads used for that user
                             break
-
             except ConnectionResetError:
                 print(f"{ClientAddr} : is Disconnected from the Server")
                 logging.info(f"{ClientAddr} : is Disconnected from the Server")
@@ -252,7 +245,6 @@ class Server:
 
     def RecieveNewConnection(self):
         """This function look for new connection and accept the connection and start a new message recieving thread and add the user in the users list"""
-        print(self.ShutDownFlag)
         if not self.ShutDownFlag.is_set():
             self.ServerSock.listen()
         while not self.ShutDownFlag.is_set():
@@ -265,8 +257,7 @@ class Server:
                     break
                 else:
                     logging.error("Unexpected Error Occured")
-
-                
+                    
             self.RegisterLoginClients.append(Client)
             print(f"{ClientAddr} : is Connected to the Server")
             logging.info(f"{ClientAddr} : is Connected from the Server")
@@ -274,7 +265,6 @@ class Server:
             HandleMessageThread = threading.Thread(target=self.HandleNewClientRegisterLogin, args=(Client,ClientAddr), daemon=True)
             HandleMessageThread.start() # Register and login credential recv thread has started for new user 
         
-
     def BroadcastMessage(self, Message, username):
         """This function broadcast the message to all of the user connected to the server"""
         Message = NORMAL_MESSAGE_CODE + SPLITING_CODE + username + SPLITING_CODE + Message
@@ -327,10 +317,7 @@ class Server:
             logging.info('LOGIN_FAILED_KEY has send to the client')
         else:
             pass
-
-
-
-
+            
     def SentToSpecificCleint(self, Client, Message):
         """This func used to send message to specific client"""
         MessageLength = str(len(Message)).zfill(DEFAULT_BYTES)
