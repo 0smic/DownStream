@@ -13,7 +13,7 @@ Although i used fernet and bcrypt for encryption.
  - not forked, written by hand, just feel the pain.
  - it feels secure(emotionally, atleast).
 
-
+**(Source code is written almost one year ago. so I don't feel like editing it now, that is what it is)**
 
 # How To Start
 
