@@ -10,8 +10,10 @@ Although i used fernet and bcrypt for encryption.
 (Yeah not good how it handle. Beach look the code you will get it.)
 
 # Why it's cool
- - Not copied, not forked, written by hand.
+ - not forked, written by hand, just feel the pain.
  - it feels secure(emotionally, atleast).
+
+
 
 # How To Start
 
