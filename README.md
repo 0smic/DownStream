@@ -7,7 +7,7 @@
 Build it from scratch take it as an example to create super secure application.
 
 Although i used fernet and bcrypt for encryption.
-(Yeah not good how it handle. Beach look the code you will get it.)
+(Yeah not good how it handle. look the code you will get it.)
 
 # Why it's cool
  - not forked, written by hand, just feel the pain.
